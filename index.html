@@ -135,7 +135,7 @@ textarea{resize:vertical}
 <section id="s6"><div class="card"><div class="mut">Daily motivation</div><b id="qt" style="font-size:17px"></b></div>
 <div class="card"><h2>🏅 Badges</h2><div class="bg" id="bgs"></div></div>
 <div class="card"><h2>✏️ Edit timetable</h2><div class="mut">Change times or add your own tasks. Applies every day.</div><div id="ed"></div><div class="inp" style="margin-top:8px;flex-wrap:wrap"><input id="ctn" placeholder="New task" style="flex:1 1 100%"><input id="cts" type="time"><input id="cte" type="time"><button class="btn" id="cta">Add</button></div><div class="chips"><button class="btn s" id="crs">Reset timetable</button></div></div>
-<div class="card"><h2>🔑 Google AI connection</h2><div class="mut">Ask my coach uses your own Google Gemini API key to solve sums and help with JEE questions. Get a free key at aistudio.google.com/apikey and paste it here. It stays on this phone only and is never put in the code or in backups. Anyone using your phone could use it, so keep your key private.</div><input id="akk" type="password" placeholder="AIza..." style="width:100%;margin-top:8px" autocomplete="off"><div class="ed"><span>Model</span><select id="akm" style="width:190px"></select></div><div class="chips"><button class="btn" id="aks">Save</button><button class="btn s" id="akr">Remove key</button></div><div class="mut" id="akt" style="margin-top:6px"></div></div>
+<div class="card"><h2>🔑 Google AI keys</h2><div class="mut">Use a different key for each job so one key does not run out. If a key is busy (too many requests), the app automatically tries your other keys and then a lighter model. Get free keys at aistudio.google.com/apikey. Tip: create each key in a different Google project, because the free limit is shared by all keys of one project. Keys stay on this phone only.</div><div class="inp" style="margin-top:8px"><select id="tks"><option value="coach">🧠 Ask my coach</option><option value="pyq">🎯 JEE PYQ solver</option><option value="mistake">📕 Mistake book</option></select></div><div class="ed"><span>Model</span><select id="akm" style="width:190px"></select></div><div id="tkl"></div><div class="inp" style="margin-top:8px"><input id="tkk" type="password" placeholder="AIza..." autocomplete="off"><button class="btn" id="tka">Add key</button></div><div class="mut" id="akt" style="margin-top:6px"></div></div>
 <div class="card"><h2>⚙️ Customise your app</h2>
 <div class="mut">Text size</div><div class="chips"><button data-zm="0.9">Small</button><button data-zm="1">Normal</button><button data-zm="1.12">Large</button><button data-zm="1.25">Extra large</button></div>
 <div class="mut" style="margin-top:8px">Snowfall</div><div class="chips"><button data-sn="0">Off</button><button data-sn="1">Light</button><button data-sn="2">Normal</button><button data-sn="3">Heavy</button></div>
@@ -182,7 +182,7 @@ textarea{resize:vertical}
 <input id="mbn" placeholder="Optional: my answer / what I did wrong" style="width:100%;margin-top:8px">
 <div id="mbt" class="chips"></div>
 <div class="inp" style="margin-top:8px"><label class="btn s">📷<input type="file" id="mbc" accept="image/*" capture="environment" hidden></label><label class="btn s">🖼<input type="file" id="mbg" accept="image/*" hidden></label><button class="btn" id="mba" style="flex:1">Solve &amp; save</button></div>
-<details style="margin-top:10px"><summary class="mut">🔑 Mistake book API key</summary><div class="mut" style="margin-top:6px">Paste a second Google Gemini API key (aistudio.google.com/apikey) just for this book. It stays on this phone only. If you leave it empty, your main Google key is used.</div><input id="mkk" type="password" placeholder="AIza..." style="width:100%;margin-top:8px" autocomplete="off"><div class="ed"><span>Model</span><select id="mkm" style="width:190px"></select></div><div class="chips"><button class="btn" id="mks">Save</button><button class="btn s" id="mkr">Remove key</button></div></details></div>
+<div class="mut" style="margin-top:10px">🔑 The key and model for this book are set in More under Google AI keys.</div></div>
 <div class="card"><h2 id="mbh">My mistakes</h2><div class="inp"><select id="mbf"><option value="">All</option><option>Physics</option><option>Chemistry</option><option>Maths</option><option>Other</option></select><input id="mbs" placeholder="Search"></div><div id="mbl"></div><div class="chips"><button class="btn s" id="mbx">Copy all as text</button></div><div class="mut" style="margin-top:6px">Saved only on this phone, in the app's own storage. Use Copy all as text now and then to keep a copy.</div></div></section>
 <section id="s15"><div class="card"><h2>📝 Notes</h2><div class="mut">Write anything you need to remember. Pin the important ones, tick them off when done.</div><textarea id="ntx" rows="3" style="width:100%;margin-top:8px" placeholder="e.g. Buy a calculator, ask sir about rotation doubt, mom's birthday..."></textarea><div class="chips"><button class="btn" id="nta">Add note</button><button class="btn s" id="ntc" style="display:none">Cancel edit</button></div></div>
 <div class="card"><h2 id="nth">My notes</h2><input id="nts" placeholder="Search notes" style="width:100%;margin-bottom:6px"><div id="ntl"></div><div class="chips"><button class="btn s" id="ntd">Clear done notes</button></div><div class="mut" style="margin-top:6px">Saved only on this phone.</div></div></section>
@@ -460,13 +460,13 @@ async function aAdd(files){const L=await aLimits();for(const f of files){
  else toast((f.name||'File')+': this type is not supported here. For a PDF, upload screenshots of its pages.')}aTray()}
 async function aSend(q){q=(q||$('#ain').value).trim();if(!q||A.busy)return;
  A.h.push({role:'user',content:q});A.h.push({role:'assistant',content:'Thinking... ❄'});$('#ain').value='';A.busy=1;aRender();
- try{const sm=(!KEY()&&window.claude&&claude.use)?await claude.use('sample'):null;if(!sm){A.h[A.h.length-1].content=await aApiText();A.busy=0;aRender();saveA();return}
+ try{const sm=(!KEY()&&window.claude&&claude.use)?await claude.use('sample'):null;if(!sm){A.h[A.h.length-1].content=await aApiText(/PYQ|previous year/i.test(q)?'pyq':'coach');A.busy=0;aRender();saveA();return}
   if(A.imgs.length&&!(await aLimits()))throw{code:'noimg'};
   const ctx=aCtx();
   const turns=[{role:'user',content:ctx},...A.h.slice(0,-1).slice(-12)],o={cache:false,modelTier:'default',onText:u=>{A.h[A.h.length-1].content=u.text;aRender()}};
   if(A.imgs.length)o.images=A.imgs.map(x=>x.b);
   const r=await sm(turns,o);A.h[A.h.length-1].content=r.text||'I could not come up with an answer. Please try again.'}
- catch(e){const c=e&&e.code;A.h[A.h.length-1].content=c==='not_granted'?'Please allow this app to use Claude (send again and accept the prompt).':c==='rate_limited'?'Too many questions at once. Wait a moment and try again.':c==='noimg'?'Image upload is not available in this view. Open the app inside Claude to send photos.':c==='na'?'The AI coach is only available when the app is opened inside Claude.':c==='nokey'?'To ask here, add your Google API key in More under Google AI connection. Or tap Ask in Claude app to ask there.':c==='apierr'?(e.msg||'The Google AI request failed. Check your key and try again.'):'Sorry, I could not answer right now. Please try again.'}
+ catch(e){const c=e&&e.code;A.h[A.h.length-1].content=c==='not_granted'?'Please allow this app to use Claude (send again and accept the prompt).':c==='rate_limited'?'Too many questions at once. Wait a moment and try again.':c==='noimg'?'Image upload is not available in this view. Open the app inside Claude to send photos.':c==='na'?'The AI coach is only available when the app is opened inside Claude.':c==='nokey'?'To ask here, add a Google API key in More under Google AI keys. Or tap Ask in Claude app to ask there.':c==='apierr'?(e.msg||'The Google AI request failed. Check your key and try again.'):'Sorry, I could not answer right now. Please try again.'}
  A.busy=0;aRender();saveA()}
 $('#asd').onclick=()=>aSend();
 $('#ain').addEventListener('keydown',e=>{if(e.key==='Enter')aSend()});
@@ -621,24 +621,46 @@ $('#stsv').onclick=()=>{const n=(id,lo,hi,cur)=>{const v=parseInt($(id).value);r
  if(!F.iv)F.left=(F.w?(G.fm||25):(G.bm||5))*60;
  saveG();render();toast('Settings saved')};
 let rc=0;$('#strt').onclick=()=>{if(!rc){rc=1;$('#strt').textContent='Tap again to reset today';setTimeout(()=>{rc=0;$('#strt').textContent='Reset today'},3000);return}rc=0;S.done={};S.outs=[];S.fired={};$('#strt').textContent='Reset today';save();saveG();render();toast('Today was reset')};
-function KEY(){try{return localStorage.getItem('winterarc.gkey')||''}catch(e){return''}}
+function TKL(){return['coach','pyq','mistake']}
+var TN={coach:'Ask my coach',pyq:'JEE PYQ solver',mistake:'Mistake book'},TS='coach';
+(function(){try{if(localStorage.getItem('winterarc.keys'))return;const o={coach:[],pyq:[],mistake:[]},a=localStorage.getItem('winterarc.gkey'),b=localStorage.getItem('winterarc.mkey'),m=localStorage.getItem('winterarc.mmodel');if(a)o.coach.push(a);if(b)o.mistake.push(b);localStorage.setItem('winterarc.keys',JSON.stringify(o));if(m)localStorage.setItem('winterarc.models',JSON.stringify({mistake:m}));localStorage.removeItem('winterarc.gkey');localStorage.removeItem('winterarc.mkey');localStorage.removeItem('winterarc.mmodel')}catch(e){}})();
+function tkGet(){let o={};try{o=JSON.parse(localStorage.getItem('winterarc.keys')||'{}')||{}}catch(e){}TKL().forEach(t=>{if(!Array.isArray(o[t]))o[t]=[]});return o}
+function tkSave(o){try{localStorage.setItem('winterarc.keys',JSON.stringify(o));return true}catch(e){toast('Could not save the key');return false}}
+function gKeys(task){const o=tkGet(),out=[];[task,...TKL().filter(t=>t!==task)].forEach(t=>o[t].forEach(k=>{if(!out.includes(k))out.push(k)}));return out}
+function KEY(){return gKeys('coach')[0]||''}
+function gModelsGet(){try{return JSON.parse(localStorage.getItem('winterarc.models')||'{}')||{}}catch(e){return{}}}
+function gModelRaw(t){const M=gModelsGet(),m=(t in M)?M[t]:(t==='coach'?G.am:'');return /^gemini/i.test(m||'')?m:''}
+function gModel(t){return gModelRaw(t)||'gemini-2.5-flash'}
+function gModels(t){return [...new Set([gModel(t),'gemini-2.5-flash','gemini-2.5-flash-lite'])]}
+function gmFail(r,j){const em=(j.error&&j.error.message)||'';throw{code:'apierr',msg:(r.status===429||r.status===503)?'Google says too many requests on every key and model. Wait a minute, or add another key (from a different Google project) in More under Google AI keys.':(r.status===401||r.status===403||/api key/i.test(em))?'Your Google API key was not accepted. Check it in More under Google AI keys.':r.status===404?'That model name was not found. Change it in More under Google AI keys.':em||'The Google AI request failed.'}}
+async function gmCall(task,payload){const keys=gKeys(task),mods=gModels(task);if(!keys.length)throw{code:'nokey'};let last=null,n=0;
+ outer:for(const k of keys)for(const m of mods){if(n++>=8)break outer;
+  let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify(payload)})}catch(e){throw{code:'apierr',msg:'Could not reach Google AI. Check your internet connection.'}}
+  const j=await r.json().catch(()=>({})),em=(j.error&&j.error.message)||'';
+  if(r.ok)return j;last={r,j};
+  if(r.status===429||r.status===503||r.status===404)continue;
+  if(r.status===401||r.status===403||(r.status===400&&/api key/i.test(em)))continue outer;
+  break outer}
+ gmFail(last.r,last.j)}
 function imgB64(file){return new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',0.85).split(',')[1])};im.onerror=no;im.src=fr.result};fr.onerror=no;fr.readAsDataURL(file)})}
-const gm=()=>/^gemini/i.test(G.am||'')?G.am:'gemini-2.5-flash';
-async function aApiText(){const key=KEY();if(!key)throw{code:'nokey'};
+const gm=()=>gModel('coach');
+async function aApiText(task){
  const ctx=aCtx();
  const hist=A.h.slice(0,-1).slice(-11).map(m=>({role:m.role==='assistant'?'model':'user',parts:[{text:m.content}]}));
  while(hist.length&&hist[0].role==='model')hist.shift();
  if(!hist.length)hist.push({role:'user',parts:[{text:'Hi'}]});
  if(A.imgs.length){const bl=[];for(const x of A.imgs)bl.push({inline_data:{mime_type:'image/jpeg',data:await imgB64(x.b)}});const l=hist[hist.length-1];l.parts=[...bl,...l.parts]}
- let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(gm())+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':key},body:JSON.stringify({systemInstruction:{parts:[{text:ctx}]},contents:hist,generationConfig:{maxOutputTokens:8192}})})}catch(e){throw{code:'apierr',msg:'Could not reach Google AI. Check your internet connection.'}}
- const j=await r.json().catch(()=>({})),em=(j.error&&j.error.message)||'';
- if(!r.ok)throw{code:'apierr',msg:(r.status===401||r.status===403||/api key/i.test(em))?'Your Google API key was not accepted. Check it in More.':r.status===404?'That model name was not found. Change it in More.':r.status===429?'Too many requests. Wait a moment and try again.':em||'The Google AI request failed.'};
+ const j=await gmCall(task||'coach',{systemInstruction:{parts:[{text:ctx}]},contents:hist,generationConfig:{maxOutputTokens:8192}});
  if(j.promptFeedback&&j.promptFeedback.blockReason)return 'Google blocked that request. Try rephrasing your question.';
  const c=(j.candidates&&j.candidates[0])||{};
  return ((c.content&&c.content.parts)||[]).filter(b=>b.text&&!b.thought).map(b=>b.text).join('\n')||'I could not come up with an answer. Please try again.'}
-function akShow(){$('#akt').textContent=KEY()?'A key is saved on this phone. Model: '+gm():'No key saved yet.';mdFill($('#akm'),/^gemini/i.test(G.am||'')?G.am:'')}
-$('#aks').onclick=()=>{const k=$('#akk').value.trim(),m=$('#akm').value.trim();if(k){try{localStorage.setItem('winterarc.gkey',k)}catch(e){toast('Could not save the key');return}$('#akk').value=''}G.am=m;saveG();A.lim=null;akShow();toast('Saved')};
-$('#akr').onclick=()=>{try{localStorage.removeItem('winterarc.gkey')}catch(e){}A.lim=null;akShow();toast('Key removed')};
+function akShow(){const o=tkGet();TS=$('#tks').value||'coach';
+ $('#tkl').innerHTML=o[TS].length?o[TS].map((k,i)=>'<div class="row" style="cursor:default"><div class="tx"><b>'+esc(k.slice(0,4)+'...'+k.slice(-4))+'</b><span>Key '+(i+1)+'</span></div><button class="btn s" data-kx="'+i+'">Remove</button></div>').join(''):'<div class="mut" style="margin-top:6px">No key for this task yet'+(TS==='coach'?'.':', so it uses the other keys.')+'</div>';
+ mdFill($('#akm'),gModelRaw(TS));
+ $('#akt').textContent=TKL().map(t=>TN[t]+': '+o[t].length+(o[t].length===1?' key':' keys')).join(' | ')+'. A busy key is skipped automatically.'}
+$('#tks').onchange=akShow;
+$('#tka').onclick=()=>{const k=$('#tkk').value.trim();if(!k){toast('Paste a key first');return}const o=tkGet();if(o[TS].includes(k)){toast('That key is already added');return}o[TS].push(k);if(!tkSave(o))return;$('#tkk').value='';A.lim=null;akShow();mbShow();toast('Key added to '+TN[TS])};
+$('#tkl').onclick=e=>{const b=e.target.closest('[data-kx]');if(!b||!confirm('Remove this key?'))return;const o=tkGet();o[TS].splice(+b.dataset.kx,1);tkSave(o);A.lim=null;akShow();mbShow()};
 $('#aop').onclick=()=>{let q=$('#ain').value.trim();if(!q){const u=[...A.h].reverse().find(m=>m.role==='user');q=u?u.content:''}if(!q){toast('Type your question first');return}
  if(A.txt.length)q=(q+'\n\n'+A.txt.map(x=>'['+x.n+']\n'+x.t.slice(0,1500)).join('\n')).slice(0,5000);
  if(A.imgs.length)toast('Photos cannot be sent this way. Attach them inside the Claude app.');
@@ -649,11 +671,7 @@ function chatRender(){$('#ch').innerHTML=S.chat.map(m=>`<div class="m ${m.r}">${
 
 /* ---- mistake book ---- */
 let MB={db:null,img:null,busy:0};
-const MBK=()=>{try{return localStorage.getItem('winterarc.mkey')||''}catch(e){return''}};
-const mbKey=()=>MBK()||KEY();
-const mbM=()=>{try{return localStorage.getItem('winterarc.mmodel')||''}catch(e){return''}};
-const mbModel=()=>/^gemini/i.test(mbM())?mbM():'gemini-2.5-flash';
-function mbShow(){$('#mbst').textContent=MBK()?'Using your mistake book key. Model: '+mbModel():KEY()?'No separate key saved, so your main Google key is used.':'Add your API key below to start.';mdFill($('#mkm'),/^gemini/i.test(mbM())?mbM():'')}
+function mbShow(){const n=gKeys('mistake').length;$('#mbst').textContent=n?'Using '+n+(n===1?' key':' keys')+' for the Mistake book. Model: '+gModel('mistake'):'Add a key in More under Google AI keys to start.'}
 function mbOpen(){return new Promise((ok,no)=>{try{const r=indexedDB.open('winterarc-mb',1);r.onupgradeneeded=()=>r.result.createObjectStore('e',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)}catch(e){no(e)}})}
 async function mbDB(){return MB.db||(MB.db=await mbOpen())}
 async function mbAll(){const d=await mbDB();return new Promise((ok,no)=>{const q=d.transaction('e').objectStore('e').getAll();q.onsuccess=()=>ok(q.result);q.onerror=()=>no(q.error)})}
@@ -661,12 +679,10 @@ async function mbPut(x){const d=await mbDB();return new Promise((ok,no)=>{const 
 async function mbDel(id){const d=await mbDB();return new Promise((ok,no)=>{const t=d.transaction('e','readwrite');t.objectStore('e').delete(id);t.oncomplete=()=>ok();t.onerror=()=>no(t.error)})}
 function mbThumb(file){return new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,700/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',0.6))};im.onerror=no;im.src=fr.result};fr.onerror=no;fr.readAsDataURL(file)})}
 function mbParse(t){const re=/^[ \t]*[*#]*[ \t]*(QUESTION|SUBJECT|TOPIC|SOLUTION|ANSWER|TIP)[ \t]*[*]*[ \t]*:[ \t]*[*]*[ \t]*/gm,hs=[];let m;while((m=re.exec(t)))hs.push({k:m[1],a:m.index,b:re.lastIndex});const o={};hs.forEach((h,i)=>{o[h.k]=t.slice(h.b,i+1<hs.length?hs[i+1].a:t.length).trim()});return o}
-async function mbGen(q,note){const key=mbKey();if(!key)throw{code:'nokey'};
+async function mbGen(q,note){
  const prompt='You are a JEE (Physics, Chemistry, Maths) tutor writing a mistake book entry for a student. The question is in the attached photo and/or in the text below. Reply in EXACTLY this format, with each heading at the start of a line:\nQUESTION: (write the full question out clearly as text, including all options)\nSUBJECT: (one word: Physics, Chemistry or Maths)\nTOPIC: (chapter or topic, at most 5 words)\nSOLUTION: (complete step by step solution, show every calculation and double-check the result)\nANSWER: (the final answer, with the correct option if it is an MCQ)\nTIP: (the key concept to remember or the common mistake, 1 or 2 lines)\n\nUse plain text only: no markdown tables and no LaTeX (write x^2, sqrt(x), a/b). If a diagram or graph helps the solution, put ONE self-contained SVG inside a ```svg fenced block within SOLUTION: start with <svg viewBox="0 0 400 300">, a white background rect, dark strokes, labels with font-size 12 or more, no scripts, no external images, and compute plotted points carefully. If the photo is unclear, say so under QUESTION.'+(q?'\n\nQuestion typed by the student:\n'+q:'')+(note?'\n\nThe student says about their attempt: '+note:'');
  const parts=[];if(MB.img)parts.push({inline_data:{mime_type:'image/jpeg',data:await imgB64(MB.img)}});parts.push({text:prompt});
- let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(mbModel())+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:8192}})})}catch(e){throw{code:'apierr',msg:'Could not reach Google AI. Check your internet connection.'}}
- const j=await r.json().catch(()=>({})),em=(j.error&&j.error.message)||'';
- if(!r.ok)throw{code:'apierr',msg:(r.status===401||r.status===403||/api key/i.test(em))?'Your API key was not accepted. Check it in the Mistake book key box.':r.status===404?'That model name was not found. Change it in the Mistake book key box.':r.status===429?'Too many requests. Wait a moment and try again.':em||'The Google AI request failed.'};
+ const j=await gmCall('mistake',{contents:[{role:'user',parts}],generationConfig:{maxOutputTokens:8192}});
  if(j.promptFeedback&&j.promptFeedback.blockReason)throw{code:'apierr',msg:'Google blocked that request. Try rephrasing the question.'};
  const c=(j.candidates&&j.candidates[0])||{};
  const t=((c.content&&c.content.parts)||[]).filter(b=>b.text&&!b.thought).map(b=>b.text).join('\n');
@@ -681,8 +697,6 @@ async function mbRender(){let all;try{all=await mbAll()}catch(e){$('#mbl').inner
 $('#mbc').onchange=$('#mbg').onchange=e=>{const f=e.target.files[0];if(f){MB.img=f;mbTray()}e.target.value=''};
 $('#mbt').onclick=e=>{if(e.target.closest('[data-mbi]')){MB.img=null;mbTray()}};
 $('#mbf').onchange=mbRender;$('#mbs').oninput=mbRender;
-$('#mks').onclick=()=>{const k=$('#mkk').value.trim(),m=$('#mkm').value.trim();try{if(k){localStorage.setItem('winterarc.mkey',k);$('#mkk').value=''}if(m)localStorage.setItem('winterarc.mmodel',m);else localStorage.removeItem('winterarc.mmodel')}catch(e){toast('Could not save the key');return}mbShow();toast('Saved')};
-$('#mkr').onclick=()=>{try{localStorage.removeItem('winterarc.mkey')}catch(e){}mbShow();toast('Mistake book key removed')};
 $('#mba').onclick=async()=>{if(MB.busy)return;const q=$('#mbq').value.trim(),note=$('#mbn').value.trim();if(!q&&!MB.img){toast('Type a question or add a photo first');return}
  MB.busy=1;$('#mba').textContent='Solving... ❄';
  try{const txt=await mbGen(q,note),p=mbParse(txt);let th='';if(MB.img){try{th=await mbThumb(MB.img)}catch(e){}}
@@ -697,8 +711,7 @@ mbShow();mbTray();mbRender();
 /* ---- model dropdowns ---- */
 function mdFill(sel,cur){const L=['gemini-2.5-pro','gemini-2.5-flash-lite','gemini-3-flash-preview','gemini-3.1-pro-preview','gemini-3.1-flash-lite'];if(cur&&cur!=='gemini-2.5-flash'&&!L.includes(cur))L.push(cur);sel.innerHTML='<option value="">gemini-2.5-flash (default)</option>'+L.map(m=>'<option>'+esc(m)+'</option>').join('')+'<option value="__c">Other...</option>';sel.value=cur==='gemini-2.5-flash'?'':(cur||'')}
 function mdBind(sel,get,set){sel.onchange=()=>{let v=sel.value;if(v==='__c'){v=(prompt('Type the Gemini model name, for example gemini-2.5-pro')||'').trim();if(!/^gemini[\w.\-]*$/i.test(v)){if(v)toast('Model names start with "gemini"');mdFill(sel,get());return}}set(v);mdFill(sel,get());toast('Model: '+(v||'gemini-2.5-flash'))}}
-mdBind($('#akm'),()=>/^gemini/i.test(G.am||'')?G.am:'',v=>{G.am=v;saveG();A.lim=null;akShow()});
-mdBind($('#mkm'),()=>/^gemini/i.test(mbM())?mbM():'',v=>{try{if(v)localStorage.setItem('winterarc.mmodel',v);else localStorage.removeItem('winterarc.mmodel')}catch(e){}mbShow()});
+mdBind($('#akm'),()=>gModelRaw(TS),v=>{const M=gModelsGet();M[TS]=v;try{localStorage.setItem('winterarc.models',JSON.stringify(M))}catch(e){}akShow();mbShow()});
 
 /* ---- notes ---- */
 let NT={l:[],e:null};
