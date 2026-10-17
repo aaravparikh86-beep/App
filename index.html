@@ -135,7 +135,7 @@ textarea{resize:vertical}
 <section id="s6"><div class="card"><div class="mut">Daily motivation</div><b id="qt" style="font-size:17px"></b></div>
 <div class="card"><h2>🏅 Badges</h2><div class="bg" id="bgs"></div></div>
 <div class="card"><h2>✏️ Edit timetable</h2><div class="mut">Change times or add your own tasks. Applies every day.</div><div id="ed"></div><div class="inp" style="margin-top:8px;flex-wrap:wrap"><input id="ctn" placeholder="New task" style="flex:1 1 100%"><input id="cts" type="time"><input id="cte" type="time"><button class="btn" id="cta">Add</button></div><div class="chips"><button class="btn s" id="crs">Reset timetable</button></div></div>
-<div class="card"><h2>🔑 Google AI keys</h2><div class="mut">Use a different key for each job so one key does not run out. If a key is busy (too many requests), the app automatically tries your other keys and then a lighter model. Get free keys at aistudio.google.com/apikey. Tip: create each key in a different Google project, because the free limit is shared by all keys of one project. Keys stay on this phone only.</div><div class="inp" style="margin-top:8px"><select id="tks"><option value="coach">🧠 Ask my coach</option><option value="pyq">🎯 JEE PYQ solver</option><option value="mistake">📕 Mistake book</option></select></div><div class="ed"><span>Model</span><select id="akm" style="width:190px"></select></div><div id="tkl"></div><div class="inp" style="margin-top:8px"><input id="tkk" type="password" placeholder="AIza..." autocomplete="off"><button class="btn" id="tka">Add key</button></div><div class="mut" id="akt" style="margin-top:6px"></div></div>
+<div class="card"><h2>🔑 Google AI keys</h2><div class="mut">Use a different key for each job so one key does not run out. If a key is busy (too many requests), the app automatically tries your other keys and then a lighter model. Get free keys at aistudio.google.com/apikey. Tip: create each key in a different Google project, because the free limit is shared by all keys of one project. Keys stay on this phone only.</div><div class="inp" style="margin-top:8px"><select id="tks"><option value="coach">🧠 Ask my coach</option><option value="pyq">🎯 JEE PYQ solver</option><option value="mistake">📕 Mistake book</option></select></div><div class="ed"><span>Model</span><select id="akm" style="width:190px"></select></div><div id="tkl"></div><div class="chips"><button class="btn s" id="tkm">↻ Load available models</button></div><div class="inp" style="margin-top:8px"><input id="tkk" type="password" placeholder="AIza..." autocomplete="off"><button class="btn" id="tka">Add key</button></div><div class="mut" id="akt" style="margin-top:6px"></div></div>
 <div class="card"><h2>⚙️ Customise your app</h2>
 <div class="mut">Text size</div><div class="chips"><button data-zm="0.9">Small</button><button data-zm="1">Normal</button><button data-zm="1.12">Large</button><button data-zm="1.25">Extra large</button></div>
 <div class="mut" style="margin-top:8px">Snowfall</div><div class="chips"><button data-sn="0">Off</button><button data-sn="1">Light</button><button data-sn="2">Normal</button><button data-sn="3">Heavy</button></div>
@@ -630,10 +630,17 @@ function gKeys(task){const o=tkGet(),out=[];[task,...TKL().filter(t=>t!==task)].
 function KEY(){return gKeys('coach')[0]||''}
 function gModelsGet(){try{return JSON.parse(localStorage.getItem('winterarc.models')||'{}')||{}}catch(e){return{}}}
 function gModelRaw(t){const M=gModelsGet(),m=(t in M)?M[t]:(t==='coach'?G.am:'');return /^gemini/i.test(m||'')?m:''}
-function gModel(t){return gModelRaw(t)||'gemini-2.5-flash'}
-function gModels(t){return [...new Set([gModel(t),'gemini-2.5-flash','gemini-2.5-flash-lite'])]}
-function gmFail(r,j){const em=(j.error&&j.error.message)||'';throw{code:'apierr',msg:(r.status===429||r.status===503)?'Google says too many requests on every key and model. Wait a minute, or add another key (from a different Google project) in More under Google AI keys.':(r.status===401||r.status===403||/api key/i.test(em))?'Your Google API key was not accepted. Check it in More under Google AI keys.':r.status===404?'That model name was not found. Change it in More under Google AI keys.':em||'The Google AI request failed.'}}
-async function gmCall(task,payload){const keys=gKeys(task),mods=gModels(task);if(!keys.length)throw{code:'nokey'};let last=null,n=0;
+function gListGet(){try{return JSON.parse(localStorage.getItem('winterarc.mlist')||'[]')||[]}catch(e){return[]}}
+function gPick(l){const ok=n=>!/preview|exp/i.test(n),f=l.filter(n=>/flash/i.test(n)&&!/lite/i.test(n)&&ok(n)),li=l.filter(n=>/flash-lite/i.test(n)&&ok(n)),pr=l.filter(n=>/pro/i.test(n)&&ok(n));return [...new Set([...f.slice(0,2),...li.slice(0,1),...pr.slice(0,1)])]}
+function gModel(t){const l=gListGet();return gModelRaw(t)||(l.length&&gPick(l)[0])||'gemini-flash-latest'}
+function gModels(t){const l=gListGet(),fb=l.length?gPick(l):['gemini-flash-latest','gemini-2.5-flash','gemini-flash-lite-latest'];return [...new Set([gModel(t),...fb])].slice(0,4)}
+async function gListLoad(key){let out=[],tok='';for(let i=0;i<4;i++){const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200'+(tok?'&pageToken='+encodeURIComponent(tok):''),{headers:{'x-goog-api-key':key}});const j=await r.json().catch(()=>({}));if(!r.ok)throw{code:'apierr',msg:(j.error&&j.error.message)||'Could not load the model list.'};
+  out.push(...(j.models||[]).filter(m=>(m.supportedGenerationMethods||[]).includes('generateContent')).map(m=>String(m.name).replace(/^models\//,'')).filter(n=>/^gemini/i.test(n)&&!/(tts|image|embedding|live|audio|robotics|computer|aqa)/i.test(n)));tok=j.nextPageToken||'';if(!tok)break}
+ out=[...new Set(out)].sort((a,b)=>(/latest/.test(b)-/latest/.test(a))||b.localeCompare(a,undefined,{numeric:true}));
+ if(out.length)try{localStorage.setItem('winterarc.mlist',JSON.stringify(out))}catch(e){}
+ return out}
+function gmFail(r,j){const em=(j.error&&j.error.message)||'';throw{code:'apierr',msg:(r.status===429||r.status===503)?'Google says too many requests on every key and model. Wait a minute, or add another key (from a different Google project) in More under Google AI keys.':(r.status===401||r.status===403||/api key/i.test(em))?'Your Google API key was not accepted. Check it in More under Google AI keys.':r.status===404?'Google could not find the model. In More under Google AI keys, tap Load available models and pick one from the list.':em||'The Google AI request failed.'}}
+async function gmCall(task,payload,again){const keys=gKeys(task),mods=gModels(task);if(!keys.length)throw{code:'nokey'};let last=null,n=0;
  outer:for(const k of keys)for(const m of mods){if(n++>=8)break outer;
   let r;try{r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+encodeURIComponent(m)+':generateContent',{method:'POST',headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify(payload)})}catch(e){throw{code:'apierr',msg:'Could not reach Google AI. Check your internet connection.'}}
   const j=await r.json().catch(()=>({})),em=(j.error&&j.error.message)||'';
@@ -641,8 +648,8 @@ async function gmCall(task,payload){const keys=gKeys(task),mods=gModels(task);if
   if(r.status===429||r.status===503||r.status===404)continue;
   if(r.status===401||r.status===403||(r.status===400&&/api key/i.test(em)))continue outer;
   break outer}
+ if(!again&&last&&last.r.status===404){let l=[];try{l=await gListLoad(keys[0])}catch(e){}if(l.length)return gmCall(task,payload,1)}
  gmFail(last.r,last.j)}
-function imgB64(file){return new Promise((ok,no)=>{const fr=new FileReader();fr.onload=()=>{const im=new Image();im.onload=()=>{const k=Math.min(1,1568/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);c.getContext('2d').drawImage(im,0,0,c.width,c.height);ok(c.toDataURL('image/jpeg',0.85).split(',')[1])};im.onerror=no;im.src=fr.result};fr.onerror=no;fr.readAsDataURL(file)})}
 const gm=()=>gModel('coach');
 async function aApiText(task){
  const ctx=aCtx();
@@ -659,7 +666,9 @@ function akShow(){const o=tkGet();TS=$('#tks').value||'coach';
  mdFill($('#akm'),gModelRaw(TS));
  $('#akt').textContent=TKL().map(t=>TN[t]+': '+o[t].length+(o[t].length===1?' key':' keys')).join(' | ')+'. A busy key is skipped automatically.'}
 $('#tks').onchange=akShow;
-$('#tka').onclick=()=>{const k=$('#tkk').value.trim();if(!k){toast('Paste a key first');return}const o=tkGet();if(o[TS].includes(k)){toast('That key is already added');return}o[TS].push(k);if(!tkSave(o))return;$('#tkk').value='';A.lim=null;akShow();mbShow();toast('Key added to '+TN[TS])};
+async function tkLoad(quiet){const k=gKeys(TS)[0];if(!k){if(!quiet)toast('Add a key first');return}if(!quiet)toast('Loading models...');try{const l=await gListLoad(k);akShow();mbShow();if(!quiet)toast(l.length?'Found '+l.length+' models you can use':'No models found for this key')}catch(e){if(!quiet)toast((e&&e.msg)||'Could not load models')}}
+$('#tkm').onclick=()=>tkLoad(0);
+$('#tka').onclick=()=>{const k=$('#tkk').value.trim();if(!k){toast('Paste a key first');return}const o=tkGet();if(o[TS].includes(k)){toast('That key is already added');return}o[TS].push(k);if(!tkSave(o))return;$('#tkk').value='';A.lim=null;akShow();mbShow();toast('Key added to '+TN[TS]);tkLoad(1)};
 $('#tkl').onclick=e=>{const b=e.target.closest('[data-kx]');if(!b||!confirm('Remove this key?'))return;const o=tkGet();o[TS].splice(+b.dataset.kx,1);tkSave(o);A.lim=null;akShow();mbShow()};
 $('#aop').onclick=()=>{let q=$('#ain').value.trim();if(!q){const u=[...A.h].reverse().find(m=>m.role==='user');q=u?u.content:''}if(!q){toast('Type your question first');return}
  if(A.txt.length)q=(q+'\n\n'+A.txt.map(x=>'['+x.n+']\n'+x.t.slice(0,1500)).join('\n')).slice(0,5000);
@@ -709,7 +718,7 @@ $('#mbx').onclick=async()=>{try{const all=(await mbAll()).sort((a,b)=>Number(a.i
 mbShow();mbTray();mbRender();
 
 /* ---- model dropdowns ---- */
-function mdFill(sel,cur){const L=['gemini-2.5-pro','gemini-2.5-flash-lite','gemini-3-flash-preview','gemini-3.1-pro-preview','gemini-3.1-flash-lite'];if(cur&&cur!=='gemini-2.5-flash'&&!L.includes(cur))L.push(cur);sel.innerHTML='<option value="">gemini-2.5-flash (default)</option>'+L.map(m=>'<option>'+esc(m)+'</option>').join('')+'<option value="__c">Other...</option>';sel.value=cur==='gemini-2.5-flash'?'':(cur||'')}
+function mdFill(sel,cur){const l=gListGet(),L=(l.length?l:['gemini-flash-latest','gemini-2.5-flash','gemini-2.5-pro','gemini-flash-lite-latest']).slice();if(cur&&!L.includes(cur))L.push(cur);sel.innerHTML='<option value="">Auto (best available)</option>'+L.map(m=>'<option>'+esc(m)+'</option>').join('')+'<option value="__c">Other...</option>';sel.value=cur||''}
 function mdBind(sel,get,set){sel.onchange=()=>{let v=sel.value;if(v==='__c'){v=(prompt('Type the Gemini model name, for example gemini-2.5-pro')||'').trim();if(!/^gemini[\w.\-]*$/i.test(v)){if(v)toast('Model names start with "gemini"');mdFill(sel,get());return}}set(v);mdFill(sel,get());toast('Model: '+(v||'gemini-2.5-flash'))}}
 mdBind($('#akm'),()=>gModelRaw(TS),v=>{const M=gModelsGet();M[TS]=v;try{localStorage.setItem('winterarc.models',JSON.stringify(M))}catch(e){}akShow();mbShow()});
 
